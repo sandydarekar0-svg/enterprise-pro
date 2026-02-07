@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: wa-sender-web
+    ports:
+      - "8080:8080"
+      - "3001:3001"
+    volumes:
+      - ./:/var/www/html
+      - ./uploads:/var/www/html/uploads
+      - ./logs:/var/www/html/logs
+    environment:
+      - DB_HOST=db
+      - DB_USER=whatsapp_user
+      - DB_PASS=secure_password
+      - DB_NAME=whatsapp_sender
+      - NODEJS_URL=http://localhost:3001
+    depends_on:
+      - db
+    networks:
+      - wa-network
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: wa-sender-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=whatsapp_sender
+      - MYSQL_USER=whatsapp_user
+      - MYSQL_PASSWORD=secure_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - wa-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  wa-network:
+    driver: bridge
