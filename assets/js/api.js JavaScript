@@ -1,0 +1,47 @@
+// assets/js/api.js
+
+const API_BASE = '/api';
+
+async function apiCall(endpoint, method = 'GET', data = null) {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    if (data && method !== 'GET') {
+        if (data instanceof FormData) {
+            delete options.headers['Content-Type'];
+            options.body = data;
+        } else {
+            options.body = JSON.stringify(data);
+        }
+    }
+
+    try {
+        const response = await fetch(API_BASE + endpoint, options);
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+function showAlert(message, type = 'info') {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    const container = document.body;
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) alert.remove();
+    }, 5000);
+}
