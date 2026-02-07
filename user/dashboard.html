@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">📱 WhatsApp Bulk Sender</span>
+        <span class="navbar-text text-white me-3">
+            Credits: <strong id="credits">0</strong>
+        </span>
+        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+    </div>
+</nav>
+
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h5>💰 Credits</h5>
+                    <h2 id="creditsDisplay">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h5>📨 Messages</h5>
+                    <h2 id="messagesSent">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h5>📊 Campaigns</h5>
+                    <h2 id="campaignsCount">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h5>⚙️ WhatsApp</h5>
+                    <h2 id="waStatus">❌</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="send-message.html" class="btn btn-primary">
+                    <i class="bi bi-envelope"></i> Send Message (API)
+                </a>
+                <a href="whatsapp-login.html" class="btn btn-success">
+                    <i class="bi bi-whatsapp"></i> WhatsApp QR Login
+                </a>
+                <a href="send-whatsapp.html" class="btn btn-info">
+                    <i class="bi bi-chat-dots"></i> Send via WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Quick Stats</h5>
+        </div>
+        <div class="card-body">
+            <div id="stats">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
+<script>
+    // Load profile
+    fetch('/api/auth.php?action=profile')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('creditsDisplay').textContent = d.data.credits;
+                document.getElementById('credits').textContent = d.data.credits;
+            }
+        });
+
+    // Load messages count
+    fetch('/api/messages.php?action=list')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('messagesSent').textContent = d.data.length;
+            }
+        });
+
+    // Load campaigns count
+    fetch('/api/campaigns.php?action=list')
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('campaignsCount').textContent = d.data.length;
+            }
+        });
+
+    // Check WhatsApp status
+    fetch('/api/whatsapp_qr.php?action=status')
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('waStatus').textContent = d.status === 'ready' ? '✅' : '❌';
+        })
+        .catch(() => {
+            document.getElementById('waStatus').textContent = '❌';
+        });
+</script>
+
+</body>
+</html>
