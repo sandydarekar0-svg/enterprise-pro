@@ -1,0 +1,8 @@
+{
+  "name": "whatsapp-bulk-sender",
+  "version": "1.0.0",
+  "description": "WhatsApp Bulk Messaging Platform",
+  "scripts": {
+    "install-all": "npm install && cd nodejs-backend && npm install"
+  }
+}
