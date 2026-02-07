@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp QR Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        }
+        
+        .qr-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .qr-code {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .qr-code img {
+            max-width: 100%;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="qr-container">
+    <div class="qr-card">
+        <h2 class="mb-3">📱 Connect WhatsApp</h2>
+        <p class="text-muted">Scan QR code with your WhatsApp mobile app</p>
+        
+        <div id="qrCodeArea" style="display:none;">
+            <div class="qr-code" id="qrCodeContainer">
+                <img id="qrImage" alt="QR Code">
+            </div>
+            <p class="text-muted">⏳ Waiting for scan...</p>
+        </div>
+        
+        <div id="loadingArea" style="display:none;">
+            <div class="spinner mx-auto mb-3"></div>
+            <p class="text-muted">Generating QR Code...</p>
+        </div>
+        
+        <div id="connectedArea" style="display:none;">
+            <div class="alert alert-success">
+                <h5>✅ Connected!</h5>
+                <p id="phoneNumber" class="mb-0">Your WhatsApp is ready</p>
+            </div>
+            <a href="send-whatsapp.html" class="btn btn-success btn-lg w-100">Start Sending</a>
+        </div>
+        
+        <div id="errorArea" style="display:none;">
+            <div class="alert alert-danger" id="errorMessage"></div>
+            <button class="btn btn-primary w-100" onclick="startLogin()">Try Again</button>
+        </div>
+        
+        <hr>
+        <a href="dashboard.html" class="text-muted text-decoration-none">Back →</a>
+    </div>
+</div>
+
+<script>
+    let statusCheckInterval;
+
+    async function startLogin() {
+        try {
+            document.getElementById('loadingArea').style.display = 'block';
+            document.getElementById('qrCodeArea').style.display = 'none';
+            
+            const response = await fetch('/api/whatsapp_qr.php?action=login', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.data.qrCode) {
+                document.getElementById('qrImage').src = data.data.qrCode;
+                document.getElementById('qrCodeArea').style.display = 'block';
+                document.getElementById('loadingArea').style.display = 'none';
+                
+                checkStatus();
+                statusCheckInterval = setInterval(checkStatus, 2000);
+            } else {
+                showError('Failed to generate QR code');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    async function checkStatus() {
+        try {
+            const response = await fetch('/api/whatsapp_qr.php?action=status');
+            const data = await response.json();
+            
+            if (data.status === 'ready') {
+                clearInterval(statusCheckInterval);
+                document.getElementById('qrCodeArea').style.display = 'none';
+                document.getElementById('connectedArea').style.display = 'block';
+                document.getElementById('errorArea').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Status check error:', error);
+        }
+    }
+
+    function showError(message) {
+        clearInterval(statusCheckInterval);
+        document.getElementById('loadingArea').style.display = 'none';
+        document.getElementById('qrCodeArea').style.display = 'none';
+        document.getElementById('connectedArea').style.display = 'none';
+        document.getElementById('errorArea').style.display = 'block';
+        document.getElementById('errorMessage').textContent = message;
+    }
+
+    window.addEventListener('load', startLogin);
+</script>
+
+</body>
+</html>
